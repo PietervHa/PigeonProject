@@ -46,7 +46,11 @@ public class LoginApplication extends Application {
             stage.setScene(homePage.getHomeScene());
         });
 
-        createAccountButton.setOnAction(event -> System.out.println("Account creation logic here"));
+        createAccountButton.setOnAction(event -> {
+            // Navigate to SignUpPage
+            SignUpPage signUpPage = new SignUpPage();
+            stage.setScene(signUpPage.getSignUpScene(stage)); // Pass the stage to navigate back to login if needed
+        });
 
         // Setup the stage
         stage.setTitle("Login Screen");
