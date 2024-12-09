@@ -1,4 +1,4 @@
-package com.pieter.pigeonproject;
+/*package com.pieter.pigeonproject;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -48,4 +48,4 @@ public class SignUpPage {
 
         return new Scene(signUpPane, 320, 240);
     }
-}
+}*/
