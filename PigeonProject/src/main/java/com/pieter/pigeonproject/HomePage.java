@@ -6,42 +6,28 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import com.pieter.pigeonproject.Classes.Navbar;
 
 public class HomePage {
 
     private Stage stage;
-    private VBox navBar;
     private boolean isNavBarVisible = true;
+    private BorderPane mainLayout;
+    private Navbar navBarComponent;
 
     public HomePage(Stage stage) {
         this.stage = stage;
-        stage.setTitle("Home Page");
+        this.navBarComponent = new Navbar(stage);
     }
 
     public Scene getHomeScene() {
         // Create main layout
-        BorderPane mainLayout = new BorderPane();
+        mainLayout = new BorderPane();
 
-        // Create sidebar navigation
-        navBar = new VBox(10);
-        navBar.setPadding(new Insets(10));
-
-        Button btnToggleNav = new Button("☰"); // Toggle button for nav bar
-        btnToggleNav.setOnAction(e -> toggleNavBar(mainLayout));
-
-        Button btnStamkaarten = new Button("Stamkaarten");
-        Button btnHokbestand = new Button("Hokbestand");
-        Button btnAccount = new Button("Account");
-        Button btnLogout = new Button("Uitloggen");
-
-        btnLogout.setOnAction(e -> {
-            LoginApplication loginApp = new LoginApplication();
-            loginApp.start(stage);
-        });
-
-        navBar.getChildren().addAll(btnStamkaarten, btnHokbestand, btnAccount, btnLogout);
+        // Create toggle button
+        Button btnToggleNav = new Button("☰");
+        btnToggleNav.setOnAction(e -> toggleNavBar());
 
         HBox topBar = new HBox(10, btnToggleNav);
         topBar.setPadding(new Insets(10));
@@ -51,18 +37,17 @@ public class HomePage {
 
         // Add components to the layout
         mainLayout.setTop(topBar);
-        mainLayout.setLeft(navBar);
+        mainLayout.setLeft(navBarComponent.getNavBar());
         mainLayout.setCenter(homeLabel);
 
-        return new Scene(mainLayout, 960, 720);
-
+        return new Scene(mainLayout, 1900, 1080);
     }
 
-    private void toggleNavBar(BorderPane layout) {
+    private void toggleNavBar() {
         if (isNavBarVisible) {
-            layout.setLeft(null);
+            mainLayout.setLeft(null);
         } else {
-            layout.setLeft(navBar);
+            mainLayout.setLeft(navBarComponent.getNavBar());
         }
         isNavBarVisible = !isNavBarVisible;
     }
