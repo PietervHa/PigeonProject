@@ -1,6 +1,9 @@
 package com.pieter.pigeonproject.Classes;
 
+import com.pieter.pigeonproject.AccountPage;
+import com.pieter.pigeonproject.HokBestandPage;
 import com.pieter.pigeonproject.LoginApplication;
+import com.pieter.pigeonproject.StamKaartenPage;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
@@ -25,9 +28,9 @@ public class Navbar {
         Button btnLogout = new Button("Uitloggen");
 
         // Set button actions (You need to implement navigation to respective pages)
-        // btnStamkaarten.setOnAction(e -> stage.setScene(new StamkaartenPage(stage).getScene()));
-        // btnHokbestand.setOnAction(e -> stage.setScene(new HokbestandPage(stage).getScene()));
-        // btnAccount.setOnAction(e -> stage.setScene(new AccountPage(stage).getScene()));
+         btnStamkaarten.setOnAction(e -> stage.setScene(new StamKaartenPage(stage).getScene()));
+         btnHokbestand.setOnAction(e -> stage.setScene(new HokBestandPage(stage).getScene()));
+         btnAccount.setOnAction(e -> stage.setScene(new AccountPage(stage).getScene()));
         btnLogout.setOnAction(e -> {
             LoginApplication loginApp = new LoginApplication();
             loginApp.start(stage);
