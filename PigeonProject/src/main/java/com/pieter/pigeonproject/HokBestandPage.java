@@ -9,22 +9,19 @@ import javafx.stage.Stage;
 public class HokBestandPage {
 
     private Stage stage;
+    private BorderPane mainLayout;
 
     public HokBestandPage(Stage stage) {
         this.stage = stage;
     }
 
     public Scene getScene() {
-        // Create main layout
-        BorderPane mainLayout = new BorderPane();
+        // Create main layout using Navbar class
+        Navbar navBarComponent = new Navbar(stage);
+        mainLayout = navBarComponent.getLayout();
 
-        // Add the reusable NavBar
-        Navbar navBar = new Navbar(stage);
-        mainLayout.setLeft(navBar.getNavBar());
-
-        // Page content
+        // Page Content
         Label titleLabel = new Label("Hokbestand Page");
-        titleLabel.setStyle("-fx-font-size: 24px; -fx-padding: 20px;");
         mainLayout.setCenter(titleLabel);
 
         return new Scene(mainLayout, 1900, 1080);

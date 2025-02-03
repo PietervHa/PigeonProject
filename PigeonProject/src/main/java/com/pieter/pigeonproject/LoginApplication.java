@@ -70,7 +70,7 @@ public class LoginApplication extends Application {
             if (validateLogin(email, password)) {
                 // Navigate to HomePage if login is successful
                 HomePage homePage = new HomePage(stage);
-                stage.setScene(homePage.getHomeScene());
+                stage.setScene(homePage.getScene());
             } else {
                 showAlert("Login Failed", "Invalid email or password.");
             }
