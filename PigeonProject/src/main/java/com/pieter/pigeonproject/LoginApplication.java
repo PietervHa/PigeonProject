@@ -1,19 +1,15 @@
 package com.pieter.pigeonproject;
 
+import com.pieter.pigeonproject.Classes.Database;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,14 +18,12 @@ public class LoginApplication extends Application {
 
     private Scene loginScene;
     private Scene signUpScene;
-
-    // Database connection details
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/pigeonprojects";
-    private static final String DB_USER = "root"; // Change to your MySQL username
-    private static final String DB_PASSWORD = ""; // Change to your MySQL password
+    private Database db; // Database object for reuse
 
     @Override
     public void start(Stage stage) {
+        db = new Database(); // Create the database connection once
+
         // Initialize scenes for login and sign-up
         loginScene = createLoginScene(stage);
         signUpScene = createSignUpScene(stage);
@@ -76,10 +70,7 @@ public class LoginApplication extends Application {
             }
         });
 
-        createAccountButton.setOnAction(event -> {
-            // Switch to Sign-Up Page
-            stage.setScene(signUpScene);
-        });
+        createAccountButton.setOnAction(event -> stage.setScene(signUpScene));
 
         return new Scene(loginPane, 320, 240);
     }
@@ -124,22 +115,16 @@ public class LoginApplication extends Application {
             }
         });
 
-        backButton.setOnAction(event -> {
-            // Switch back to Login Page
-            stage.setScene(loginScene);
-        });
+        backButton.setOnAction(event -> stage.setScene(loginScene));
 
         return new Scene(signUpPane, 320, 240);
     }
 
     private boolean validateLogin(String email, String password) {
         String query = "SELECT * FROM users WHERE mail = ? AND password = ?";
-        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-
+        try (PreparedStatement stmt = db.getConnection().prepareStatement(query)) {
             stmt.setString(1, email);
             stmt.setString(2, password);
-
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next(); // If a row is found, login is valid
             }
@@ -154,9 +139,9 @@ public class LoginApplication extends Application {
         String checkQuery = "SELECT * FROM users WHERE mail = ?";
         String insertQuery = "INSERT INTO users (name, mail, password) VALUES (?, ?, ?)";
 
-        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+        try {
             // Check if email already exists
-            try (PreparedStatement checkStmt = conn.prepareStatement(checkQuery)) {
+            try (PreparedStatement checkStmt = db.getConnection().prepareStatement(checkQuery)) {
                 checkStmt.setString(1, email);
                 try (ResultSet rs = checkStmt.executeQuery()) {
                     if (rs.next()) {
@@ -166,7 +151,7 @@ public class LoginApplication extends Application {
             }
 
             // Insert new user into database
-            try (PreparedStatement insertStmt = conn.prepareStatement(insertQuery)) {
+            try (PreparedStatement insertStmt = db.getConnection().prepareStatement(insertQuery)) {
                 insertStmt.setString(1, name);
                 insertStmt.setString(2, email);
                 insertStmt.setString(3, password);
