@@ -1,5 +1,6 @@
 package com.pieter.pigeonproject;
 
+import com.pieter.pigeonproject.Classes.Database;
 import com.pieter.pigeonproject.Classes.Navbar;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -10,14 +11,16 @@ public class StamKaartenPage {
 
     private Stage stage;
     private BorderPane mainLayout;
+    private Database db;
 
-    public StamKaartenPage(Stage stage) {
+    public StamKaartenPage(Stage stage, Database db) {
         this.stage = stage;
+        this.db = db;
     }
 
     public Scene getScene() {
         // Create main layout using Navbar class
-        Navbar navBarComponent = new Navbar(stage);
+        Navbar navBarComponent = new Navbar(stage, db);
         mainLayout = navBarComponent.getLayout();
 
         // Create Stamkaarten Page Content

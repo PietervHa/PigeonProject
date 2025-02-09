@@ -1,5 +1,6 @@
 package com.pieter.pigeonproject;
 
+import com.pieter.pigeonproject.Classes.Database;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
@@ -10,14 +11,16 @@ public class HomePage {
 
     private Stage stage;
     private BorderPane mainLayout;
+    private Database db;
 
-    public HomePage(Stage stage) {
+    public HomePage(Stage stage, Database db) {
         this.stage = stage;
+        this.db = db;
     }
 
     public Scene getScene() {
         // Create main layout
-        Navbar navBarComponent = new Navbar(stage);
+        Navbar navBarComponent = new Navbar(stage, db);
         mainLayout = navBarComponent.getLayout();
 
         // Create Home Screen Content

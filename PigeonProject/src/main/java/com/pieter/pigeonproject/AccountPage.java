@@ -22,7 +22,7 @@ public class AccountPage {
     private String currentEmail;
     private String currentPassword;
 
-    public AccountPage(Stage stage) {
+    public AccountPage(Stage stage, Database db) {
         this.stage = stage;
         this.db = new Database();
         fetchAccountData();
@@ -30,7 +30,7 @@ public class AccountPage {
 
     public Scene getScene() {
         // Navbar toevoegen
-        Navbar navBarComponent = new Navbar(stage);
+        Navbar navBarComponent = new Navbar(stage, db);
         mainLayout = navBarComponent.getLayout();
 
         // GridPane voor de content

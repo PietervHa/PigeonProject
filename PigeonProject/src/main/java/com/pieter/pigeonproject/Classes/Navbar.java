@@ -16,9 +16,11 @@ public class Navbar {
     private BorderPane container;
     private boolean isNavBarOpen = true;
     private Stage stage;
+    private Database db; // Added Database reference
 
-    public Navbar(Stage stage) {
+    public Navbar(Stage stage, Database db) { // Constructor now takes Database
         this.stage = stage;
+        this.db = db;
         container = new BorderPane();
         navBar = createNavBar();
 
@@ -46,11 +48,11 @@ public class Navbar {
         Button btnAccount = new Button("Account");
         Button btnLogout = new Button("Uitloggen");
 
-        // Set button actions to navigate between pages
-        btnStamkaarten.setOnAction(e -> stage.setScene(new StamKaartenPage(stage).getScene()));
-        btnHokbestand.setOnAction(e -> stage.setScene(new HokBestandPage(stage).getScene()));
-        btnAccount.setOnAction(e -> stage.setScene(new AccountPage(stage).getScene()));
-        btnHome.setOnAction(e -> stage.setScene(new HomePage(stage).getScene()));
+        // ✅ Fix: Pass `db` to all page instances
+        btnStamkaarten.setOnAction(e -> stage.setScene(new StamKaartenPage(stage, db).getScene()));
+        btnHokbestand.setOnAction(e -> stage.setScene(new HokBestandPage(stage, db).getScene()));
+        btnAccount.setOnAction(e -> stage.setScene(new AccountPage(stage, db).getScene()));
+        btnHome.setOnAction(e -> stage.setScene(new HomePage(stage, db).getScene()));
 
         // Logout action with confirmation
         btnLogout.setOnAction(e -> showLogoutConfirmation());

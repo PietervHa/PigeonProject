@@ -9,7 +9,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -63,7 +62,7 @@ public class LoginApplication extends Application {
 
             if (validateLogin(email, password)) {
                 // Navigate to HomePage if login is successful
-                HomePage homePage = new HomePage(stage);
+                HomePage homePage = new HomePage(stage, db);
                 stage.setScene(homePage.getScene());
             } else {
                 showAlert("Login Failed", "Invalid email or password.");
