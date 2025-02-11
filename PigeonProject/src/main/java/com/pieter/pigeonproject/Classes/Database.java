@@ -5,20 +5,15 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class Database {
+    private static final String URL = "jdbc:mysql://localhost:3306/pigeonprojects";
+    private static final String USER = "root";
+    private static final String PASSWORD = "";
 
-    private Connection conn;
-
-    // Constructor creates the database connection
-    public Database() {
+    public Connection getConnection() {
         try {
-            this.conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/pigeonprojects", "root", "");
+            return DriverManager.getConnection(URL, USER, PASSWORD);
         } catch (SQLException e) {
             throw new RuntimeException("Database connection failed!", e);
         }
-    }
-
-    // Method to get the connection so it can be used in other classes
-    public Connection getConnection() {
-        return conn;
     }
 }
