@@ -129,6 +129,58 @@ public class StamKaartenPage {
         }
     }
 
+    private void addPigeonToStamkaart() {
+        String selectedStamkaart = stamkaartenList.getSelectionModel().getSelectedItem();
+        if (selectedStamkaart == null) {
+            showAlert("Fout", "Selecteer eerst een stamkaart.");
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Duif toevoegen");
+        dialog.setHeaderText("Voer het ringnummer van de duif in:");
+        dialog.setContentText("Ringnummer:");
+
+        dialog.showAndWait().ifPresent(ringnummer -> {
+            try (Connection conn = db.getConnection()) {
+                // Get stamkaart_id
+                PreparedStatement getStamkaartId = conn.prepareStatement("SELECT stamkaart_id FROM stamkaarten WHERE naam = ?");
+                getStamkaartId.setString(1, selectedStamkaart);
+                ResultSet rs = getStamkaartId.executeQuery();
+
+                if (rs.next()) {
+                    int stamkaartId = rs.getInt("stamkaart_id");
+
+                    // Check if pigeon exists
+                    PreparedStatement checkPigeon = conn.prepareStatement("SELECT * FROM duiven WHERE ringnummer = ?");
+                    checkPigeon.setString(1, ringnummer);
+                    ResultSet pigeonExists = checkPigeon.executeQuery();
+
+                    if (!pigeonExists.next()) {
+                        showAlert("Fout", "Deze duif bestaat niet in de database.");
+                        return;
+                    }
+
+                    // Insert into stamkaart_duiven
+                    PreparedStatement stmt = conn.prepareStatement("INSERT INTO stamkaart_duiven (stamkaart_id, ringnummer) VALUES (?, ?)");
+                    stmt.setInt(1, stamkaartId);
+                    stmt.setString(2, ringnummer);
+                    stmt.executeUpdate();
+
+                    loadPigeonsForStamkaart(selectedStamkaart);
+                } else {
+                    showAlert("Fout", "Stamkaarten ID niet gevonden.");
+                }
+            } catch (SQLException e) {
+                showAlert("Error", "Fout bij toevoegen van duif: " + e.getMessage());
+            }
+        });
+    }
+
+    private void removePigeonFromStamkaart() {
+        showAlert("Info", "Remove Pigeon functionality is not implemented yet.");
+    }
+
     private void createStamkaart() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Nieuwe Stamkaart");
@@ -187,14 +239,6 @@ public class StamKaartenPage {
                 }
             }
         });
-    }
-
-    private void addPigeonToStamkaart() {
-        showAlert("Info", "Add Pigeon functionality is not implemented yet.");
-    }
-
-    private void removePigeonFromStamkaart() {
-        showAlert("Info", "Remove Pigeon functionality is not implemented yet.");
     }
 
     private void showAlert(String title, String message) {
