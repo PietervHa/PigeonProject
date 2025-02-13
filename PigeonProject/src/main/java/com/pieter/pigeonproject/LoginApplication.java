@@ -6,7 +6,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.sql.PreparedStatement;
@@ -17,30 +20,37 @@ public class LoginApplication extends Application {
 
     private Scene loginScene;
     private Scene signUpScene;
-    private Database db; // Database object for reuse
+    private Database db;
 
     @Override
     public void start(Stage stage) {
-        db = new Database(); // Create the database connection once
+        db = new Database();
 
-        // Initialize scenes for login and sign-up
         loginScene = createLoginScene(stage);
         signUpScene = createSignUpScene(stage);
 
-        // Setup the stage
         stage.setTitle("Login Screen");
-        stage.setScene(loginScene); // Start with the login scene
+        stage.setScene(loginScene);
         stage.show();
     }
 
     private Scene createLoginScene(Stage stage) {
+        VBox root = new VBox(15);
+        root.setAlignment(Pos.CENTER);
+        root.setPadding(new Insets(20));
+
+        // 📌 Load and Display Pigeon Logo
+        Image logo = new Image(getClass().getResourceAsStream("images/Pigeon Logo.JPG"));
+        ImageView logoView = new ImageView(logo);
+        logoView.setFitWidth(250);  // Resize width
+        logoView.setPreserveRatio(true);
+
         GridPane loginPane = new GridPane();
         loginPane.setPadding(new Insets(20));
         loginPane.setVgap(10);
         loginPane.setHgap(10);
         loginPane.setAlignment(Pos.CENTER);
 
-        // Add UI components
         Label usernameLabel = new Label("Email:");
         TextField usernameField = new TextField();
         Label passwordLabel = new Label("Password:");
@@ -55,13 +65,13 @@ public class LoginApplication extends Application {
         loginPane.add(loginButton, 0, 2);
         loginPane.add(createAccountButton, 1, 2);
 
-        // Set button actions
+        root.getChildren().addAll(logoView, loginPane);
+
         loginButton.setOnAction(event -> {
             String email = usernameField.getText();
             String password = passwordField.getText();
 
             if (validateLogin(email, password)) {
-                // Navigate to HomePage if login is successful
                 HomePage homePage = new HomePage(stage, db);
                 stage.setScene(homePage.getScene());
             } else {
@@ -71,7 +81,7 @@ public class LoginApplication extends Application {
 
         createAccountButton.setOnAction(event -> stage.setScene(signUpScene));
 
-        return new Scene(loginPane, 320, 240);
+        return new Scene(root, 400, 350);
     }
 
     private Scene createSignUpScene(Stage stage) {
@@ -81,7 +91,6 @@ public class LoginApplication extends Application {
         signUpPane.setHgap(10);
         signUpPane.setAlignment(Pos.CENTER);
 
-        // Add UI components
         Label nameLabel = new Label("Name:");
         TextField nameField = new TextField();
         Label emailLabel = new Label("Email:");
@@ -100,7 +109,6 @@ public class LoginApplication extends Application {
         signUpPane.add(signUpButton, 0, 3);
         signUpPane.add(backButton, 1, 3);
 
-        // Set button actions
         signUpButton.setOnAction(event -> {
             String name = nameField.getText();
             String email = emailField.getText();
@@ -108,7 +116,7 @@ public class LoginApplication extends Application {
 
             if (registerUser(name, email, password)) {
                 showAlert("Sign Up Successful", "Your account has been created.");
-                stage.setScene(loginScene); // Return to login page
+                stage.setScene(loginScene);
             } else {
                 showAlert("Sign Up Failed", "An account with this email already exists.");
             }
@@ -116,7 +124,7 @@ public class LoginApplication extends Application {
 
         backButton.setOnAction(event -> stage.setScene(loginScene));
 
-        return new Scene(signUpPane, 320, 240);
+        return new Scene(signUpPane, 400, 350);
     }
 
     private boolean validateLogin(String email, String password) {
@@ -125,7 +133,7 @@ public class LoginApplication extends Application {
             stmt.setString(1, email);
             stmt.setString(2, password);
             try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next(); // If a row is found, login is valid
+                return rs.next();
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -139,17 +147,15 @@ public class LoginApplication extends Application {
         String insertQuery = "INSERT INTO users (name, mail, password) VALUES (?, ?, ?)";
 
         try {
-            // Check if email already exists
             try (PreparedStatement checkStmt = db.getConnection().prepareStatement(checkQuery)) {
                 checkStmt.setString(1, email);
                 try (ResultSet rs = checkStmt.executeQuery()) {
                     if (rs.next()) {
-                        return false; // Email already exists
+                        return false;
                     }
                 }
             }
 
-            // Insert new user into database
             try (PreparedStatement insertStmt = db.getConnection().prepareStatement(insertQuery)) {
                 insertStmt.setString(1, name);
                 insertStmt.setString(2, email);
