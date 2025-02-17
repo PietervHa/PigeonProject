@@ -40,7 +40,7 @@ public class HokBestandPage {
         addButton.setOnAction(e -> showAddPigeonDialog());
 
         VBox content = new VBox(10, pigeonListView, addButton);
-        content.setAlignment(Pos.CENTER);
+        content.setAlignment(Pos.TOP_CENTER);
         content.setPadding(new javafx.geometry.Insets(20));
 
         mainLayout.setCenter(content);
@@ -69,11 +69,13 @@ public class HokBestandPage {
         Label ringLabel = new Label(ringnummer);
         Button editButton = new Button("Edit");
         Button deleteButton = new Button("Delete");
+        Button btnView = new Button("👁 View");
 
         editButton.setOnAction(e -> showEditPigeonDialog(ringnummer));
         deleteButton.setOnAction(e -> deletePigeon(ringnummer));
+        btnView.setOnAction(event -> showViewPigeonDialog(ringnummer));
 
-        HBox row = new HBox(10, ringLabel, editButton, deleteButton);
+        HBox row = new HBox(10, ringLabel, btnView, editButton, deleteButton);
         row.setAlignment(Pos.CENTER_LEFT);
         return row;
     }
@@ -112,6 +114,32 @@ public class HokBestandPage {
         });
 
         VBox layout = new VBox(10, grid, saveButton);
+        layout.setAlignment(Pos.CENTER);
+        layout.setPadding(new javafx.geometry.Insets(20));
+
+        Scene scene = new Scene(layout, 400, 400);
+        dialog.setScene(scene);
+        dialog.showAndWait();
+    }
+
+    private void showViewPigeonDialog(String ringnummer) {
+        Stage dialog = new Stage();
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        dialog.setTitle("View Pigeon");
+
+        GridPane grid = createPigeonForm(ringnummer);
+
+        // Disable all input fields
+        for (javafx.scene.Node node : grid.getChildren()) {
+            if (node instanceof TextField) {
+                ((TextField) node).setDisable(true);
+            }
+        }
+
+        Button closeButton = new Button("Close");
+        closeButton.setOnAction(e -> dialog.close());
+
+        VBox layout = new VBox(10, grid, closeButton);
         layout.setAlignment(Pos.CENTER);
         layout.setPadding(new javafx.geometry.Insets(20));
 

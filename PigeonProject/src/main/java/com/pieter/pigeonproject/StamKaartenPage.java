@@ -46,31 +46,48 @@ public class StamKaartenPage {
 
         loadStamkaarten();
 
-        // Left: Stamkaarten List
-        VBox leftPane = new VBox(10, new Label("Stamkaarten"), stamkaartenList);
+        // Left Pane: Stamkaarten List
+        Label stamkaartenLabel = new Label("Stamkaarten");
+        VBox leftPane = new VBox(10, stamkaartenLabel, stamkaartenList);
         leftPane.setPadding(new Insets(10));
+        leftPane.setPrefWidth(300); // Keep it a fixed width
 
-        // Right: Pigeon List in selected stamkaart
-        VBox rightPane = new VBox(10, new Label("Pigeons in Stamkaart"), pigeonList);
-        rightPane.setPadding(new Insets(10));
+        // Right Pane: Pigeon List
+        Label pigeonLabel = new Label("Pigeons in Stamkaart");
+        VBox pigeonListContainer = new VBox(10, pigeonLabel, pigeonList);
+        pigeonListContainer.setPadding(new Insets(10));
 
-        // Buttons
+        // ScrollPane to allow scrolling in the pigeon list
+        ScrollPane pigeonScrollPane = new ScrollPane(pigeonListContainer);
+        pigeonScrollPane.setFitToWidth(true);
+        pigeonScrollPane.setFitToHeight(true);
+        pigeonScrollPane.setPrefWidth(1600); // Allow it to take most of the screen
+        pigeonScrollPane.setPadding(new Insets(10));
+
+        // Buttons for Stamkaarten
         Button btnAdd = new Button("➕ Add Stamkaart");
         Button btnRename = new Button("✏ Rename");
         Button btnDelete = new Button("🗑 Delete");
+
+        HBox buttonBar = new HBox(10, btnAdd, btnRename, btnDelete);
+        buttonBar.setPadding(new Insets(10));
+
+        // Buttons for Pigeons
         Button btnAddPigeon = new Button("➕ Add Pigeon");
         Button btnRemovePigeon = new Button("❌ Remove Pigeon");
 
-        HBox buttonBar = new HBox(10, btnAdd, btnRename, btnDelete);
         HBox pigeonBar = new HBox(10, btnAddPigeon, btnRemovePigeon);
-        buttonBar.setPadding(new Insets(10));
         pigeonBar.setPadding(new Insets(10));
 
-        // Set up the content inside the content layout
-        contentLayout.setLeft(leftPane);
-        contentLayout.setRight(rightPane);
-        contentLayout.setTop(buttonBar);
-        contentLayout.setBottom(pigeonBar);
+        // Right Pane: Pigeon List + Buttons
+        VBox rightPane = new VBox(10, pigeonScrollPane, pigeonBar);
+        rightPane.setPadding(new Insets(10));
+        rightPane.setMaxWidth(Double.MAX_VALUE);
+
+        // Layout Setup
+        contentLayout.setLeft(leftPane);   // Stamkaarten on the left
+        contentLayout.setCenter(rightPane); // Pigeons on the right
+        contentLayout.setTop(buttonBar);    // Stamkaarten buttons on top
 
         // Add the content inside the navbar layout
         mainLayout.setCenter(contentLayout);
@@ -83,7 +100,7 @@ public class StamKaartenPage {
         btnAddPigeon.setOnAction(event -> addPigeonToStamkaart());
         btnRemovePigeon.setOnAction(event -> removePigeonFromStamkaart());
 
-        return new Scene(mainLayout, 900, 600);
+        return new Scene(mainLayout, 1900, 1080);
     }
 
     private void loadStamkaarten() {
