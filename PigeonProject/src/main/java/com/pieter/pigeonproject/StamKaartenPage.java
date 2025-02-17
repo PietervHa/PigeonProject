@@ -178,7 +178,39 @@ public class StamKaartenPage {
     }
 
     private void removePigeonFromStamkaart() {
-        showAlert("Info", "Remove Pigeon functionality is not implemented yet.");
+        String selectedStamkaart = stamkaartenList.getSelectionModel().getSelectedItem();
+        String selectedPigeon = pigeonList.getSelectionModel().getSelectedItem();
+
+        if (selectedStamkaart == null) {
+            showAlert("Error", "Selecteer een stamkaart voordat je een duif verwijdert.");
+            return;
+        }
+
+        if (selectedPigeon == null) {
+            showAlert("Error", "Selecteer een duif om te verwijderen.");
+            return;
+        }
+
+        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION,
+                "Weet je zeker dat je deze duif wilt verwijderen?", ButtonType.YES, ButtonType.NO);
+
+        confirmation.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.YES) {
+                try (Connection conn = db.getConnection();
+                     PreparedStatement stmt = conn.prepareStatement(
+                             "DELETE FROM stamkaart_duiven WHERE ringnummer = ? " +
+                                     "AND stamkaart_id = (SELECT stamkaart_id FROM stamkaarten WHERE naam = ?)")) {
+
+                    stmt.setString(1, selectedPigeon);
+                    stmt.setString(2, selectedStamkaart);
+                    stmt.executeUpdate();
+
+                    loadPigeonsForStamkaart(selectedStamkaart); // Refresh de lijst na verwijderen
+                } catch (SQLException e) {
+                    showAlert("Error", "Fout bij verwijderen van duif: " + e.getMessage());
+                }
+            }
+        });
     }
 
     private void createStamkaart() {
