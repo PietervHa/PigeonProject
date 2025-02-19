@@ -9,6 +9,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import javafx.util.Pair;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -153,12 +154,59 @@ public class StamKaartenPage {
             return;
         }
 
-        TextInputDialog dialog = new TextInputDialog();
+        // Create dialog elements
+        Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Duif toevoegen");
-        dialog.setHeaderText("Voer het ringnummer van de duif in:");
-        dialog.setContentText("Ringnummer:");
+        dialog.setHeaderText("Voer het ringnummer van de duif in en selecteer een familiepositie:");
 
-        dialog.showAndWait().ifPresent(ringnummer -> {
+        // Ringnummer input field
+        TextField ringnummerField = new TextField();
+        ringnummerField.setPromptText("Ringnummer");
+
+        // Parent selection dropdown
+        ComboBox<String> parentTypeBox = new ComboBox<>();
+        parentTypeBox.getItems().addAll(
+                "Child", "Father", "Mother",
+                "GrandFather A", "GrandMother A", "GrandFather B", "GrandMother B",
+                "GreatGrandFather 1", "GreatGrandMother 1", "GreatGrandFather 2", "GreatGrandMother 2",
+                "GreatGrandFather 3", "GreatGrandMother 3", "GreatGrandFather 4", "GreatGrandMother 4"
+        );
+        parentTypeBox.setValue("Child"); // Default selection
+
+        // Layout for the input fields
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        grid.add(new Label("Ringnummer:"), 0, 0);
+        grid.add(ringnummerField, 1, 0);
+        grid.add(new Label("Familiepositie:"), 0, 1);
+        grid.add(parentTypeBox, 1, 1);
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Add OK and Cancel buttons
+        ButtonType okButton = new ButtonType("Toevoegen", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(okButton, ButtonType.CANCEL);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == okButton) {
+                return new Pair<>(ringnummerField.getText(), parentTypeBox.getValue());
+            }
+            return null;
+        });
+
+        // Handle user input
+        dialog.showAndWait().ifPresent(result -> {
+            String ringnummer = result.getKey();
+            String parentType = result.getValue();
+
+            if (ringnummer.isEmpty()) {
+                showAlert("Fout", "Voer een ringnummer in.");
+                return;
+            }
+
             try (Connection conn = db.getConnection()) {
                 // Get stamkaart_id
                 PreparedStatement getStamkaartId = conn.prepareStatement("SELECT stamkaart_id FROM stamkaarten WHERE naam = ?");
@@ -178,10 +226,13 @@ public class StamKaartenPage {
                         return;
                     }
 
-                    // Insert into stamkaart_duiven
-                    PreparedStatement stmt = conn.prepareStatement("INSERT INTO stamkaart_duiven (stamkaart_id, ringnummer) VALUES (?, ?)");
+                    // Insert into stamkaart_duiven with parent type
+                    PreparedStatement stmt = conn.prepareStatement(
+                            "INSERT INTO stamkaart_duiven (stamkaart_id, ringnummer, parent_type) VALUES (?, ?, ?)"
+                    );
                     stmt.setInt(1, stamkaartId);
                     stmt.setString(2, ringnummer);
+                    stmt.setString(3, parentType);
                     stmt.executeUpdate();
 
                     loadPigeonsForStamkaart(selectedStamkaart);
