@@ -14,6 +14,7 @@ import javafx.stage.Stage;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -182,9 +183,6 @@ public class HokBestandPage {
         TextField oudersField = new TextField();
         oudersField.setPromptText("Ouders");
 
-        Label stamkaartenLabel = new Label("Stamkaarten:");
-        ListView<String> stamkaartListView = new ListView<>();
-
         if (ringnummer != null) {
             String query = "SELECT * FROM duiven WHERE ringnummer = ?";
             try (PreparedStatement stmt = db.getConnection().prepareStatement(query)) {
@@ -201,18 +199,22 @@ public class HokBestandPage {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-
-            // 🔹 Fetch stamkaarten for the pigeon
-            ObservableList<String> stamkaarten = FXCollections.observableArrayList(getStamkaartenForPigeon(ringnummer));
-            stamkaartListView.setItems(stamkaarten);
         }
 
+        // 🔹 Disable fields ONLY when viewing
         if (isViewMode) {
             ringnummerField.setDisable(true);
             geboortejaarField.setDisable(true);
             geslachtField.setDisable(true);
             hokField.setDisable(true);
             oudersField.setDisable(true);
+
+            // 🔹 Add Stamkaarten ListView ONLY when viewing
+            Label stamkaartenLabel = new Label("Stamkaarten:");
+            ListView<String> stamkaartListView = new ListView<>();
+            ObservableList<String> stamkaarten = FXCollections.observableArrayList(getStamkaartenForPigeon(ringnummer));
+            stamkaartListView.setItems(stamkaarten);
+            grid.addRow(5, stamkaartenLabel, stamkaartListView);
         }
 
         grid.addRow(0, new Label("Ringnummer:"), ringnummerField);
@@ -220,7 +222,6 @@ public class HokBestandPage {
         grid.addRow(2, new Label("Geslacht:"), geslachtField);
         grid.addRow(3, new Label("Hok:"), hokField);
         grid.addRow(4, new Label("Ouders:"), oudersField);
-        grid.addRow(5, stamkaartenLabel, stamkaartListView);  // 🔹 Displaying the linked stamkaarten
 
         return grid;
     }
@@ -242,16 +243,52 @@ public class HokBestandPage {
     }
 
     private void updatePigeon(GridPane grid, String ringnummer) {
-        String query = "UPDATE duiven SET geboortejaar=?, geslacht=?, hok=?, ouders=? WHERE ringnummer=?";
+        String query = "UPDATE duiven SET ringnummer=?, geboortejaar=?, geslacht=?, hok=?, ouders=? WHERE ringnummer=?";
 
         try (PreparedStatement stmt = db.getConnection().prepareStatement(query)) {
-            stmt.setString(1, ((TextField) grid.getChildren().get(3)).getText());
-            stmt.setString(2, ((TextField) grid.getChildren().get(5)).getText());
-            stmt.setString(3, ((TextField) grid.getChildren().get(7)).getText());
-            stmt.setString(4, ((TextField) grid.getChildren().get(9)).getText());
-            stmt.setString(5, ringnummer);
-            stmt.executeUpdate();
-            loadPigeons();
+            // Get values in the correct order
+            String newRingnummer = ((TextField) grid.getChildren().get(1)).getText().trim();
+            String newGeboortejaar = ((TextField) grid.getChildren().get(3)).getText().trim();
+            String newGeslacht = ((TextField) grid.getChildren().get(5)).getText().trim();
+            String newHok = ((TextField) grid.getChildren().get(7)).getText().trim();
+            String newOuders = ((TextField) grid.getChildren().get(9)).getText().trim();
+
+            // Validate and parse geboortejaar as an integer
+            int geboortejaar;
+            try {
+                geboortejaar = Integer.parseInt(newGeboortejaar);
+            } catch (NumberFormatException e) {
+                System.out.println("⚠ Invalid geboortejaar: " + newGeboortejaar);
+                return; // Stop execution if geboortejaar is not a valid number
+            }
+
+            // Debugging: Print values to console
+            System.out.println("Updating pigeon: " + ringnummer);
+            System.out.println("New ringnummer: " + newRingnummer);
+            System.out.println("New geboortejaar: " + geboortejaar);
+            System.out.println("New geslacht: " + newGeslacht);
+            System.out.println("New hok: " + newHok);
+            System.out.println("New ouders: " + newOuders);
+
+            // Set parameters in the correct order
+            stmt.setString(1, newRingnummer);
+            stmt.setInt(2, geboortejaar);
+            stmt.setString(3, newGeslacht);
+            stmt.setString(4, newHok);
+            stmt.setString(5, newOuders);
+            stmt.setString(6, ringnummer); // WHERE condition
+
+            // Execute update
+            int rowsUpdated = stmt.executeUpdate();
+            System.out.println("Rows updated: " + rowsUpdated);
+
+            // Refresh pigeon list if update was successful
+            if (rowsUpdated > 0) {
+                loadPigeons();
+            } else {
+                System.out.println("⚠ No rows updated! Check ringnummer.");
+            }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
