@@ -4,7 +4,6 @@ import com.pieter.pigeonproject.Classes.Database;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
@@ -35,26 +34,26 @@ public class FamilyTreePopup {
         // Create GridPane for layout
         GridPane gridPane = new GridPane();
         gridPane.setPadding(new Insets(20));
-        gridPane.setHgap(20);
-        gridPane.setVgap(10);
+        gridPane.setHgap(30);
+        gridPane.setVgap(20);
         gridPane.setAlignment(Pos.CENTER);
 
-        // Populate the family tree
-        addLabel(gridPane, familyTreeData[0], 4, 5);  // Child
-        addLabel(gridPane, familyTreeData[1], 2, 4);  // Father
-        addLabel(gridPane, familyTreeData[2], 6, 4);  // Mother
-        addLabel(gridPane, familyTreeData[3], 1, 3);  // GrandFather A
-        addLabel(gridPane, familyTreeData[4], 3, 3);  // GrandMother A
-        addLabel(gridPane, familyTreeData[5], 5, 3);  // GrandFather B
-        addLabel(gridPane, familyTreeData[6], 7, 3);  // GrandMother B
-        addLabel(gridPane, familyTreeData[7], 0, 2);  // GreatGrandFather 1
-        addLabel(gridPane, familyTreeData[8], 2, 2);  // GreatGrandMother 1
-        addLabel(gridPane, familyTreeData[9], 4, 2);  // GreatGrandFather 2
-        addLabel(gridPane, familyTreeData[10], 6, 2); // GreatGrandMother 2
-        addLabel(gridPane, familyTreeData[11], 8, 2); // GreatGrandFather 3
-        addLabel(gridPane, familyTreeData[12], 10, 2); // GreatGrandMother 3
-        addLabel(gridPane, familyTreeData[13], 12, 2); // GreatGrandFather 4
-        addLabel(gridPane, familyTreeData[14], 14, 2); // GreatGrandMother 4
+        // Populate the family tree (Left to Right)
+        addLabel(gridPane, familyTreeData[0], 0, 8);  // Child
+        addLabel(gridPane, familyTreeData[1], 1, 4);  // Father
+        addLabel(gridPane, familyTreeData[2], 1, 13);  // Mother
+        addLabel(gridPane, familyTreeData[3], 2, 2);  // GrandFather A
+        addLabel(gridPane, familyTreeData[4], 2, 7);  // GrandMother A
+        addLabel(gridPane, familyTreeData[5], 2, 11);  // GrandFather B
+        addLabel(gridPane, familyTreeData[6], 2, 15);  // GrandMother B
+        addLabel(gridPane, familyTreeData[7], 3, 1);  // GreatGrandFather 1
+        addLabel(gridPane, familyTreeData[8], 3, 3);  // GreatGrandMother 1
+        addLabel(gridPane, familyTreeData[9], 3, 6);  // GreatGrandFather 2
+        addLabel(gridPane, familyTreeData[10], 3, 8); // GreatGrandMother 2
+        addLabel(gridPane, familyTreeData[11], 3, 10); // GreatGrandFather 3
+        addLabel(gridPane, familyTreeData[12], 3, 12); // GreatGrandMother 3
+        addLabel(gridPane, familyTreeData[13], 3, 14); // GreatGrandFather 4
+        addLabel(gridPane, familyTreeData[14], 3, 16); // GreatGrandMother 4
 
         // Button to close the popup
         Button closeButton = new Button("Sluiten");
@@ -67,7 +66,7 @@ public class FamilyTreePopup {
         layout.setAlignment(Pos.CENTER);
         layout.setPadding(new Insets(20));
 
-        Scene scene = new Scene(layout, 600, 400);
+        Scene scene = new Scene(layout, 1000, 600); // Increased window size
         popupStage.setScene(scene);
         popupStage.showAndWait();
     }
@@ -79,9 +78,9 @@ public class FamilyTreePopup {
     }
 
     private String[] fetchFamilyTree(String stamkaartNaam) {
-        String[] familyTree = new String[15]; // 15 positions for family members
+        String[] familyTree = new String[15];
         for (int i = 0; i < familyTree.length; i++) {
-            familyTree[i] = "Unknown"; // Default to "Unknown"
+            familyTree[i] = "Unknown";
         }
 
         String sql = """
