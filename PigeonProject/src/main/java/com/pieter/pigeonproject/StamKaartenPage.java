@@ -1,6 +1,7 @@
 package com.pieter.pigeonproject;
 
 import com.pieter.pigeonproject.Classes.Database;
+import com.pieter.pigeonproject.Classes.FamilyTreePopup;
 import com.pieter.pigeonproject.Classes.Navbar;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -69,8 +70,9 @@ public class StamKaartenPage {
         Button btnAdd = new Button("➕ Add Stamkaart");
         Button btnRename = new Button("✏ Rename");
         Button btnDelete = new Button("🗑 Delete");
+        Button btnViewTree = new Button("Bekijk Stamkaart");
 
-        HBox buttonBar = new HBox(10, btnAdd, btnRename, btnDelete);
+        HBox buttonBar = new HBox(10, btnAdd, btnRename, btnDelete, btnViewTree);
         buttonBar.setPadding(new Insets(10));
 
         // Buttons for Pigeons
@@ -98,6 +100,17 @@ public class StamKaartenPage {
         btnAdd.setOnAction(event -> createStamkaart());
         btnRename.setOnAction(event -> renameStamkaart());
         btnDelete.setOnAction(event -> deleteStamkaart());
+        btnViewTree.setOnAction(event -> {
+            String selectedStamkaart = stamkaartenList.getSelectionModel().getSelectedItem();
+
+            if (selectedStamkaart == null) {
+                showAlert("Fout", "Selecteer een stamkaart om het familieoverzicht te bekijken.");
+                return;
+            }
+
+            FamilyTreePopup familyTreePopup = new FamilyTreePopup(db);
+            familyTreePopup.showFamilyTree(selectedStamkaart); // Pass the selected stamkaart name
+        });
         btnAddPigeon.setOnAction(event -> addPigeonToStamkaart());
         btnRemovePigeon.setOnAction(event -> removePigeonFromStamkaart());
 
