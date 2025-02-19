@@ -262,14 +262,6 @@ public class HokBestandPage {
                 return; // Stop execution if geboortejaar is not a valid number
             }
 
-            // Debugging: Print values to console
-            System.out.println("Updating pigeon: " + ringnummer);
-            System.out.println("New ringnummer: " + newRingnummer);
-            System.out.println("New geboortejaar: " + geboortejaar);
-            System.out.println("New geslacht: " + newGeslacht);
-            System.out.println("New hok: " + newHok);
-            System.out.println("New ouders: " + newOuders);
-
             // Set parameters in the correct order
             stmt.setString(1, newRingnummer);
             stmt.setInt(2, geboortejaar);
@@ -280,7 +272,6 @@ public class HokBestandPage {
 
             // Execute update
             int rowsUpdated = stmt.executeUpdate();
-            System.out.println("Rows updated: " + rowsUpdated);
 
             // Refresh pigeon list if update was successful
             if (rowsUpdated > 0) {
