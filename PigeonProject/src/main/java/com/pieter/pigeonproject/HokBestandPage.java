@@ -14,6 +14,8 @@ import javafx.stage.Stage;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HokBestandPage {
 
@@ -85,7 +87,7 @@ public class HokBestandPage {
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setTitle("Add Pigeon");
 
-        GridPane grid = createPigeonForm(null);
+        GridPane grid = createPigeonForm(null, false);
         Button saveButton = new Button("Save");
         saveButton.setOnAction(e -> {
             savePigeon(grid);
@@ -106,7 +108,7 @@ public class HokBestandPage {
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setTitle("Edit Pigeon");
 
-        GridPane grid = createPigeonForm(ringnummer);
+        GridPane grid = createPigeonForm(ringnummer, false);
         Button saveButton = new Button("Save Changes");
         saveButton.setOnAction(e -> {
             updatePigeon(grid, ringnummer);
@@ -127,14 +129,7 @@ public class HokBestandPage {
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setTitle("View Pigeon");
 
-        GridPane grid = createPigeonForm(ringnummer);
-
-        // Disable all input fields
-        for (javafx.scene.Node node : grid.getChildren()) {
-            if (node instanceof TextField) {
-                ((TextField) node).setDisable(true);
-            }
-        }
+        GridPane grid = createPigeonForm(ringnummer, true); // 🔹 Pass 'true' for View Mode
 
         Button closeButton = new Button("Close");
         closeButton.setOnAction(e -> dialog.close());
@@ -148,7 +143,29 @@ public class HokBestandPage {
         dialog.showAndWait();
     }
 
-    private GridPane createPigeonForm(String ringnummer) {
+    private List<String> getStamkaartenForPigeon(String ringnummer) {
+        List<String> stamkaarten = new ArrayList<>();
+        String sql = """
+            SELECT s.naam 
+            FROM stamkaarten s
+            JOIN stamkaart_duiven sd ON s.stamkaart_id = sd.stamkaart_id
+            WHERE sd.ringnummer = ?;
+            """;
+
+        try (PreparedStatement stmt = db.getConnection().prepareStatement(sql)) {
+            stmt.setString(1, ringnummer);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                stamkaarten.add(rs.getString("naam"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return stamkaarten;
+    }
+
+    private GridPane createPigeonForm(String ringnummer, boolean isViewMode) {
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
@@ -164,8 +181,9 @@ public class HokBestandPage {
         hokField.setPromptText("Hok");
         TextField oudersField = new TextField();
         oudersField.setPromptText("Ouders");
-        TextField stamkaartnummerField = new TextField();
-        stamkaartnummerField.setPromptText("Stamkaartnummer");
+
+        Label stamkaartenLabel = new Label("Stamkaarten:");
+        ListView<String> stamkaartListView = new ListView<>();
 
         if (ringnummer != null) {
             String query = "SELECT * FROM duiven WHERE ringnummer = ?";
@@ -178,12 +196,23 @@ public class HokBestandPage {
                         geslachtField.setText(rs.getString("geslacht"));
                         hokField.setText(rs.getString("hok"));
                         oudersField.setText(rs.getString("ouders"));
-                        stamkaartnummerField.setText(rs.getString("stamkaartnummer"));
                     }
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+
+            // 🔹 Fetch stamkaarten for the pigeon
+            ObservableList<String> stamkaarten = FXCollections.observableArrayList(getStamkaartenForPigeon(ringnummer));
+            stamkaartListView.setItems(stamkaarten);
+        }
+
+        if (isViewMode) {
+            ringnummerField.setDisable(true);
+            geboortejaarField.setDisable(true);
+            geslachtField.setDisable(true);
+            hokField.setDisable(true);
+            oudersField.setDisable(true);
         }
 
         grid.addRow(0, new Label("Ringnummer:"), ringnummerField);
@@ -191,13 +220,13 @@ public class HokBestandPage {
         grid.addRow(2, new Label("Geslacht:"), geslachtField);
         grid.addRow(3, new Label("Hok:"), hokField);
         grid.addRow(4, new Label("Ouders:"), oudersField);
-        grid.addRow(5, new Label("Stamkaartnummer:"), stamkaartnummerField);
+        grid.addRow(5, stamkaartenLabel, stamkaartListView);  // 🔹 Displaying the linked stamkaarten
 
         return grid;
     }
 
     private void savePigeon(GridPane grid) {
-        String query = "INSERT INTO duiven (ringnummer, geboortejaar, geslacht, hok, ouders, stamkaartnummer) VALUES (?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO duiven (ringnummer, geboortejaar, geslacht, hok, ouders) VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmt = db.getConnection().prepareStatement(query)) {
             stmt.setString(1, ((TextField) grid.getChildren().get(1)).getText());
@@ -205,7 +234,6 @@ public class HokBestandPage {
             stmt.setString(3, ((TextField) grid.getChildren().get(5)).getText());
             stmt.setString(4, ((TextField) grid.getChildren().get(7)).getText());
             stmt.setString(5, ((TextField) grid.getChildren().get(9)).getText());
-            stmt.setString(6, ((TextField) grid.getChildren().get(11)).getText());
             stmt.executeUpdate();
             loadPigeons();
         } catch (SQLException e) {
@@ -214,15 +242,14 @@ public class HokBestandPage {
     }
 
     private void updatePigeon(GridPane grid, String ringnummer) {
-        String query = "UPDATE duiven SET geboortejaar=?, geslacht=?, hok=?, ouders=?, stamkaartnummer=? WHERE ringnummer=?";
+        String query = "UPDATE duiven SET geboortejaar=?, geslacht=?, hok=?, ouders=? WHERE ringnummer=?";
 
         try (PreparedStatement stmt = db.getConnection().prepareStatement(query)) {
             stmt.setString(1, ((TextField) grid.getChildren().get(3)).getText());
             stmt.setString(2, ((TextField) grid.getChildren().get(5)).getText());
             stmt.setString(3, ((TextField) grid.getChildren().get(7)).getText());
             stmt.setString(4, ((TextField) grid.getChildren().get(9)).getText());
-            stmt.setString(5, ((TextField) grid.getChildren().get(11)).getText());
-            stmt.setString(6, ringnummer);
+            stmt.setString(5, ringnummer);
             stmt.executeUpdate();
             loadPigeons();
         } catch (SQLException e) {
@@ -242,3 +269,5 @@ public class HokBestandPage {
         }
     }
 }
+
+
