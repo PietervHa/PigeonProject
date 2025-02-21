@@ -23,6 +23,7 @@ public class LoginApplication extends Application {
     private Database db;
 
     @Override
+    // Start de JavaFX-toepassing, initialiseert de database en stelt de eerste scène in.
     public void start(Stage stage) {
         db = new Database();
 
@@ -34,12 +35,13 @@ public class LoginApplication extends Application {
         stage.show();
     }
 
+    // Creëert de inlogscène met invoervelden voor e-mail en wachtwoord, een login-knop en een knop om een nieuw account aan te maken.
     private Scene createLoginScene(Stage stage) {
         VBox root = new VBox(15);
         root.setAlignment(Pos.CENTER);
         root.setPadding(new Insets(20));
 
-        // 📌 Load and Display Pigeon Logo
+        // Het logo laden en tonen
         Image logo = new Image(getClass().getResourceAsStream("images/Pigeon Logo.JPG"));
         ImageView logoView = new ImageView(logo);
         logoView.setFitWidth(250);  // Resize width
@@ -84,6 +86,7 @@ public class LoginApplication extends Application {
         return new Scene(root, 400, 350);
     }
 
+    // Creëert de aanmeldscène met invoervelden voor naam, e-mail en wachtwoord, een knop om een account aan te maken en een terug-knop naar het inlogscherm.
     private Scene createSignUpScene(Stage stage) {
         GridPane signUpPane = new GridPane();
         signUpPane.setPadding(new Insets(20));
@@ -127,6 +130,7 @@ public class LoginApplication extends Application {
         return new Scene(signUpPane, 400, 350);
     }
 
+    // Controleert of de ingevoerde inloggegevens overeenkomen met een bestaande gebruiker in de database.
     private boolean validateLogin(String email, String password) {
         String query = "SELECT * FROM users WHERE mail = ? AND password = ?";
         try (PreparedStatement stmt = db.getConnection().prepareStatement(query)) {
@@ -142,6 +146,7 @@ public class LoginApplication extends Application {
         return false;
     }
 
+    // Voegt een nieuwe gebruiker toe aan de database als het e-mailadres nog niet in gebruik is.
     private boolean registerUser(String name, String email, String password) {
         String checkQuery = "SELECT * FROM users WHERE mail = ?";
         String insertQuery = "INSERT INTO users (name, mail, password) VALUES (?, ?, ?)";
@@ -170,6 +175,7 @@ public class LoginApplication extends Application {
         return false;
     }
 
+    // Toont een pop-upmelding met een titel en bericht om de gebruiker te informeren over een actie of foutmelding.
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);

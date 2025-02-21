@@ -29,18 +29,18 @@ public class StamKaartenPage {
 
     public StamKaartenPage(Stage stage, Database db) {
         this.stage = stage;
-        this.db = db; // Keep the database connection
+        this.db = db; // Database connectie behouden
     }
 
     public Scene getScene() {
-        // Initialize navbar
+        // Initializeer de navbar
         Navbar navbar = new Navbar(stage, db);
         BorderPane mainLayout = navbar.getLayout();  // Use the Navbar layout
 
-        // Content layout for stamkaarten and pigeons
+        // Content layout voor stamkaarten en duiven
         contentLayout = new BorderPane();
 
-        // List for Stamkaarten
+        // List voor Stamkaarten
         stamkaartenList = new ListView<>();
         stamkaartenData = FXCollections.observableArrayList();
         pigeonList = new ListView<>();
@@ -59,14 +59,14 @@ public class StamKaartenPage {
         VBox pigeonListContainer = new VBox(10, pigeonLabel, pigeonList);
         pigeonListContainer.setPadding(new Insets(10));
 
-        // ScrollPane to allow scrolling in the pigeon list
+        // ScrollPane zodat je kan scrollen in de pigeon list
         ScrollPane pigeonScrollPane = new ScrollPane(pigeonListContainer);
         pigeonScrollPane.setFitToWidth(true);
         pigeonScrollPane.setFitToHeight(true);
         pigeonScrollPane.setPrefWidth(1600); // Allow it to take most of the screen
         pigeonScrollPane.setPadding(new Insets(10));
 
-        // Buttons for Stamkaarten
+        // Buttons voor Stamkaarten
         Button btnAdd = new Button("➕ Add Stamkaart");
         Button btnRename = new Button("✏ Rename");
         Button btnDelete = new Button("🗑 Delete");
@@ -75,7 +75,7 @@ public class StamKaartenPage {
         HBox buttonBar = new HBox(10, btnAdd, btnRename, btnDelete, btnViewTree);
         buttonBar.setPadding(new Insets(10));
 
-        // Buttons for Pigeons
+        // Buttons voor Pigeons
         Button btnAddPigeon = new Button("➕ Add Pigeon");
         Button btnRemovePigeon = new Button("❌ Remove Pigeon");
 
@@ -92,7 +92,7 @@ public class StamKaartenPage {
         contentLayout.setCenter(rightPane); // Pigeons on the right
         contentLayout.setTop(buttonBar);    // Stamkaarten buttons on top
 
-        // Add the content inside the navbar layout
+        // de content toevoegen aan de navbar layout
         mainLayout.setCenter(contentLayout);
 
         // Event Handlers
@@ -117,6 +117,7 @@ public class StamKaartenPage {
         return new Scene(mainLayout, 1900, 1080);
     }
 
+    // Haalt alle stamkaarten op uit de database en vult de lijst met stamkaarten.
     private void loadStamkaarten() {
         stamkaartenData.clear();
         try (Connection conn = db.getConnection();
@@ -132,6 +133,7 @@ public class StamKaartenPage {
         }
     }
 
+    // Laadt de bijbehorende duiven wanneer een stamkaart wordt geselecteerd.
     private void selectStamkaart() {
         String selected = stamkaartenList.getSelectionModel().getSelectedItem();
         if (selected != null) {
@@ -139,6 +141,7 @@ public class StamKaartenPage {
         }
     }
 
+    // Haalt alle duiven op die gekoppeld zijn aan een specifieke stamkaart.
     private void loadPigeonsForStamkaart(String stamkaartNaam) {
         pigeonData.clear();
         try (Connection conn = db.getConnection();
@@ -160,6 +163,7 @@ public class StamKaartenPage {
         }
     }
 
+    // Voegt een duif toe aan een stamkaart en koppelt deze met de juiste familiepositie.
     private void addPigeonToStamkaart() {
         String selectedStamkaart = stamkaartenList.getSelectionModel().getSelectedItem();
         if (selectedStamkaart == null) {
@@ -167,7 +171,7 @@ public class StamKaartenPage {
             return;
         }
 
-        // Create dialog elements
+        // Creeer dialog elements
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Duif toevoegen");
         dialog.setHeaderText("Voer het ringnummer van de duif in en selecteer een familiepositie:");
@@ -184,9 +188,9 @@ public class StamKaartenPage {
                 "GreatGrandFather 1", "GreatGrandMother 1", "GreatGrandFather 2", "GreatGrandMother 2",
                 "GreatGrandFather 3", "GreatGrandMother 3", "GreatGrandFather 4", "GreatGrandMother 4"
         );
-        parentTypeBox.setValue("Child"); // Default selection
+        parentTypeBox.setValue("Child"); // standaard
 
-        // Layout for the input fields
+        // Layout voor de input velden
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
@@ -199,7 +203,7 @@ public class StamKaartenPage {
 
         dialog.getDialogPane().setContent(grid);
 
-        // Add OK and Cancel buttons
+        // voeg ok and cancel knoppen toe
         ButtonType okButton = new ButtonType("Toevoegen", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(okButton, ButtonType.CANCEL);
 
@@ -229,7 +233,7 @@ public class StamKaartenPage {
                 if (rs.next()) {
                     int stamkaartId = rs.getInt("stamkaart_id");
 
-                    // Check if pigeon exists
+                    // controleerd of de duif bestaat
                     PreparedStatement checkPigeon = conn.prepareStatement("SELECT * FROM duiven WHERE ringnummer = ?");
                     checkPigeon.setString(1, ringnummer);
                     ResultSet pigeonExists = checkPigeon.executeQuery();
@@ -258,6 +262,7 @@ public class StamKaartenPage {
         });
     }
 
+    // Verwijdert een geselecteerde duif uit een stamkaart.
     private void removePigeonFromStamkaart() {
         String selectedStamkaart = stamkaartenList.getSelectionModel().getSelectedItem();
         String selectedPigeon = pigeonList.getSelectionModel().getSelectedItem();
@@ -294,6 +299,7 @@ public class StamKaartenPage {
         });
     }
 
+    // Voegt een nieuwe stamkaart toe aan de database.
     private void createStamkaart() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Nieuwe Stamkaart");
@@ -312,6 +318,7 @@ public class StamKaartenPage {
         });
     }
 
+    // Wijzigt de naam van een bestaande stamkaart.
     private void renameStamkaart() {
         String selected = stamkaartenList.getSelectionModel().getSelectedItem();
         if (selected == null) return;
@@ -334,6 +341,7 @@ public class StamKaartenPage {
         });
     }
 
+    // Verwijdert een geselecteerde stamkaart uit de database.
     private void deleteStamkaart() {
         String selected = stamkaartenList.getSelectionModel().getSelectedItem();
         if (selected == null) return;
@@ -354,6 +362,7 @@ public class StamKaartenPage {
         });
     }
 
+    // Toont een pop-up bericht met een titel en tekst.
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);

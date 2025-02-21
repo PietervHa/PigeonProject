@@ -26,11 +26,13 @@ public class HokBestandPage {
     private ListView<HBox> pigeonListView;
     private ObservableList<HBox> pigeonList;
 
+    // Initialiseert de HokBestandPage met het opgegeven stage en databaseverbinding.
     public HokBestandPage(Stage stage, Database db) {
         this.stage = stage;
         this.db = db;
     }
 
+    // Laadt de navigatiebalk, haalt duiven op, en retourneert de scène.
     public Scene getScene() {
         Navbar navBarComponent = new Navbar(stage, db);
         mainLayout = navBarComponent.getLayout();
@@ -50,6 +52,7 @@ public class HokBestandPage {
         return new Scene(mainLayout, 1900, 1080);
     }
 
+    // Haalt de lijst met duiven uit de database op en vult de ListView.
     private void loadPigeons() {
         pigeonList.clear();
         String query = "SELECT ringnummer FROM duiven";
@@ -68,6 +71,7 @@ public class HokBestandPage {
         pigeonListView.setItems(pigeonList);
     }
 
+    // Creëert een rij in de ListView met details en knoppen voor een duif.
     private HBox createPigeonRow(String ringnummer) {
         Label ringLabel = new Label(ringnummer);
         Button editButton = new Button("Edit");
@@ -83,6 +87,7 @@ public class HokBestandPage {
         return row;
     }
 
+    // Toont een dialoogvenster om een nieuwe duif toe te voegen.
     private void showAddPigeonDialog() {
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
@@ -104,6 +109,7 @@ public class HokBestandPage {
         dialog.showAndWait();
     }
 
+    // Toont een dialoogvenster om een bestaande duif te bewerken.
     private void showEditPigeonDialog(String ringnummer) {
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
@@ -125,6 +131,7 @@ public class HokBestandPage {
         dialog.showAndWait();
     }
 
+    // Toont een dialoogvenster om de details van een duif te bekijken.
     private void showViewPigeonDialog(String ringnummer) {
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
@@ -144,6 +151,7 @@ public class HokBestandPage {
         dialog.showAndWait();
     }
 
+    // Haalt de stamkaarten op die gekoppeld zijn aan een specifieke duif.
     private List<String> getStamkaartenForPigeon(String ringnummer) {
         List<String> stamkaarten = new ArrayList<>();
         String sql = """
@@ -166,6 +174,7 @@ public class HokBestandPage {
         return stamkaarten;
     }
 
+    // Creëert een invoerformulier voor een duif, met optionele weergavemodus.
     private GridPane createPigeonForm(String ringnummer, boolean isViewMode) {
         GridPane grid = new GridPane();
         grid.setHgap(10);
@@ -209,7 +218,7 @@ public class HokBestandPage {
             hokField.setDisable(true);
             oudersField.setDisable(true);
 
-            // 🔹 Add Stamkaarten ListView ONLY when viewing
+            // 🔹 geef Stamkaarten ListView alleen wanneer de gebruiker view klikt
             Label stamkaartenLabel = new Label("Stamkaarten:");
             ListView<String> stamkaartListView = new ListView<>();
             ObservableList<String> stamkaarten = FXCollections.observableArrayList(getStamkaartenForPigeon(ringnummer));
@@ -226,6 +235,7 @@ public class HokBestandPage {
         return grid;
     }
 
+    // Slaat een nieuwe duif op in de database met de gegevens uit het formulier.
     private void savePigeon(GridPane grid) {
         String query = "INSERT INTO duiven (ringnummer, geboortejaar, geslacht, hok, ouders) VALUES (?, ?, ?, ?, ?)";
 
@@ -242,18 +252,19 @@ public class HokBestandPage {
         }
     }
 
+    // Werkt de gegevens van een bestaande duif bij in de database.
     private void updatePigeon(GridPane grid, String ringnummer) {
         String query = "UPDATE duiven SET ringnummer=?, geboortejaar=?, geslacht=?, hok=?, ouders=? WHERE ringnummer=?";
 
         try (PreparedStatement stmt = db.getConnection().prepareStatement(query)) {
-            // Get values in the correct order
+            // haal de gegevens in de juiste volgorde op
             String newRingnummer = ((TextField) grid.getChildren().get(1)).getText().trim();
             String newGeboortejaar = ((TextField) grid.getChildren().get(3)).getText().trim();
             String newGeslacht = ((TextField) grid.getChildren().get(5)).getText().trim();
             String newHok = ((TextField) grid.getChildren().get(7)).getText().trim();
             String newOuders = ((TextField) grid.getChildren().get(9)).getText().trim();
 
-            // Validate and parse geboortejaar as an integer
+            // valideer en paas geboortejaar als een integer
             int geboortejaar;
             try {
                 geboortejaar = Integer.parseInt(newGeboortejaar);
@@ -262,7 +273,7 @@ public class HokBestandPage {
                 return; // Stop execution if geboortejaar is not a valid number
             }
 
-            // Set parameters in the correct order
+            // zet parameters in de juiste volgorde
             stmt.setString(1, newRingnummer);
             stmt.setInt(2, geboortejaar);
             stmt.setString(3, newGeslacht);
@@ -273,7 +284,7 @@ public class HokBestandPage {
             // Execute update
             int rowsUpdated = stmt.executeUpdate();
 
-            // Refresh pigeon list if update was successful
+            // refresh de duiven pagina als de update successvol was
             if (rowsUpdated > 0) {
                 loadPigeons();
             } else {
@@ -285,6 +296,7 @@ public class HokBestandPage {
         }
     }
 
+    // Verwijdert een duif uit de database op basis van het ringnummer.
     private void deletePigeon(String ringnummer) {
         String query = "DELETE FROM duiven WHERE ringnummer = ?";
 

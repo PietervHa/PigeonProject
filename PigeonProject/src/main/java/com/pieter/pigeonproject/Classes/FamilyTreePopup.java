@@ -19,26 +19,28 @@ public class FamilyTreePopup {
 
     private Database db;
 
+    // Constructor die de database ontvangt en initialiseert
     public FamilyTreePopup(Database db) {
         this.db = db;
     }
 
+    // Toont de stamboom in een popup venster voor de opgegeven stamkaart naam
     public void showFamilyTree(String stamkaartNaam) {
         Stage popupStage = new Stage();
         popupStage.initModality(Modality.APPLICATION_MODAL);
         popupStage.setTitle("Stamkaart: " + stamkaartNaam);
 
-        // Fetch family tree data
+        // haal stamkaarten op
         String[] familyTreeData = fetchFamilyTree(stamkaartNaam);
 
-        // Create GridPane for layout
+        // maak GridPane voor de layout
         GridPane gridPane = new GridPane();
         gridPane.setPadding(new Insets(20));
         gridPane.setHgap(30);
         gridPane.setVgap(20);
         gridPane.setAlignment(Pos.CENTER);
 
-        // Populate the family tree (Left to Right)
+        // vul de stamboom (links naar rechts)
         addLabel(gridPane, familyTreeData[0], 0, 8);  // Child
         addLabel(gridPane, familyTreeData[1], 1, 4);  // Father
         addLabel(gridPane, familyTreeData[2], 1, 13);  // Mother
@@ -55,7 +57,7 @@ public class FamilyTreePopup {
         addLabel(gridPane, familyTreeData[13], 3, 14); // GreatGrandFather 4
         addLabel(gridPane, familyTreeData[14], 3, 16); // GreatGrandMother 4
 
-        // Button to close the popup
+        // Button om de pop up te sluiten
         Button closeButton = new Button("Sluiten");
         closeButton.setOnAction(e -> popupStage.close());
         HBox buttonBox = new HBox(closeButton);
@@ -66,17 +68,19 @@ public class FamilyTreePopup {
         layout.setAlignment(Pos.CENTER);
         layout.setPadding(new Insets(20));
 
-        Scene scene = new Scene(layout, 1000, 600); // Increased window size
+        Scene scene = new Scene(layout, 1000, 600);
         popupStage.setScene(scene);
         popupStage.showAndWait();
     }
 
+    // Voegt een label toe aan de GridPane met de opgegeven tekst, kolom en rij
     private void addLabel(GridPane gridPane, String text, int col, int row) {
         Label label = new Label(text);
         label.setStyle("-fx-border-color: black; -fx-padding: 5; -fx-background-color: lightgray;");
         gridPane.add(label, col, row);
     }
 
+    // Haalt de stamboomgegevens op uit de database voor de opgegeven stamkaart naam
     private String[] fetchFamilyTree(String stamkaartNaam) {
         String[] familyTree = new String[15];
         for (int i = 0; i < familyTree.length; i++) {

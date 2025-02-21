@@ -22,12 +22,14 @@ public class AccountPage {
     private String currentEmail;
     private String currentPassword;
 
+    // Initialiseert de AccountPage en haalt accountgegevens op.
     public AccountPage(Stage stage, Database db) {
         this.stage = stage;
         this.db = new Database();
         fetchAccountData();
     }
 
+    // Laadt de navigatiebalk, toont accountgegevens en retourneert de scène.
     public Scene getScene() {
         // Navbar toevoegen
         Navbar navBarComponent = new Navbar(stage, db);
@@ -70,6 +72,7 @@ public class AccountPage {
         return new Scene(mainLayout, 1900, 1080);
     }
 
+    // Haalt de e-mail en het wachtwoord van de gebruiker op uit de database.
     private void fetchAccountData() {
         String query = "SELECT mail, password FROM users WHERE id = 1"; // Pas ID aan indien nodig
 
@@ -87,6 +90,7 @@ public class AccountPage {
         }
     }
 
+    // Toont een dialoogvenster waarmee de gebruiker zijn e-mail of wachtwoord kan wijzigen.
     private void showChangeDialog(String type, TextField field) {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Wijzigen " + (type.equals("email") ? "E-mail" : "Wachtwoord"));
@@ -109,6 +113,7 @@ public class AccountPage {
         });
     }
 
+    // Werkt de e-mail of het wachtwoord van de gebruiker bij in de database.
     private void updateAccountData(String type, String newValue) {
         String query = "UPDATE users SET " + (type.equals("email") ? "mail" : "password") + " = ? WHERE id = 1";
 
@@ -132,6 +137,7 @@ public class AccountPage {
         }
     }
 
+    // Toont een informatieve melding aan de gebruiker.
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);

@@ -14,16 +14,18 @@ public class HomePage {
     private BorderPane mainLayout;
     private Database db;
 
+    // Initialisatie van de HomePage met het opgegeven stage en databaseverbinding.
     public HomePage(Stage stage, Database db) {
         this.stage = stage;
         this.db = db;
     }
 
+    // Laadt de navigatiebalk, stelt de achtergrondafbeelding in en retourneert de scène.
     public Scene getScene() {
         Navbar navBarComponent = new Navbar(stage, db);
         mainLayout = navBarComponent.getLayout();
 
-        // 📌 Load and Set Background Image
+        // achtergrond afbeelding laden
         Image backgroundImage = new Image(getClass().getResourceAsStream("images/Pigeon Sitting.webp"));
         BackgroundSize backgroundSize = new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, false, false);
         BackgroundImage background = new BackgroundImage(backgroundImage, BackgroundRepeat.NO_REPEAT,

@@ -9,6 +9,7 @@ public class Database {
     private static final String USER = "root";
     private static final String PASSWORD = "";
 
+    //maakt de connectie met de database en deze word doorgegeven aan alle paginas
     public Connection getConnection() {
         try {
             return DriverManager.getConnection(URL, USER, PASSWORD);
