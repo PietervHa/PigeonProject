@@ -1,6 +1,6 @@
 package com.pieter.pigeonproject;
 
-import com.pieter.pigeonproject.Classes.Database;
+import com.pieter.pigeonproject.Controllers.LoginController;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -12,20 +12,21 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
+/**
+ * Frontend klasse voor login- en registratieschermen.
+ * Behandelt alle UI-componenten en gebruikersinteracties.
+ */
 public class LoginApplication extends Application {
 
     private Scene loginScene;
     private Scene signUpScene;
-    private Database db;
+
+    // Backend controller instantie voor login & registratie
+    private LoginController loginController;
 
     @Override
-    // Start de JavaFX-toepassing, initialiseert de database en stelt de eerste scène in.
     public void start(Stage stage) {
-        db = new Database();
+        loginController = new LoginController(new com.pieter.pigeonproject.Classes.Database());
 
         loginScene = createLoginScene(stage);
         signUpScene = createSignUpScene(stage);
@@ -35,16 +36,17 @@ public class LoginApplication extends Application {
         stage.show();
     }
 
-    // Creëert de inlogscène met invoervelden voor e-mail en wachtwoord, een login-knop en een knop om een nieuw account aan te maken.
+    /**
+     * Creëert de login-scène met e-mail, wachtwoord, en knoppen.
+     */
     private Scene createLoginScene(Stage stage) {
         VBox root = new VBox(15);
         root.setAlignment(Pos.CENTER);
         root.setPadding(new Insets(20));
 
-        // Het logo laden en tonen
         Image logo = new Image(getClass().getResourceAsStream("images/Pigeon Logo.JPG"));
         ImageView logoView = new ImageView(logo);
-        logoView.setFitWidth(250);  // Resize width
+        logoView.setFitWidth(250);
         logoView.setPreserveRatio(true);
 
         GridPane loginPane = new GridPane();
@@ -73,8 +75,8 @@ public class LoginApplication extends Application {
             String email = usernameField.getText();
             String password = passwordField.getText();
 
-            if (validateLogin(email, password)) {
-                HomePage homePage = new HomePage(stage, db);
+            if (loginController.validateLogin(email, password)) {
+                HomePage homePage = new HomePage(stage, loginController.getDb());
                 stage.setScene(homePage.getScene());
             } else {
                 showAlert("Login Failed", "Invalid email or password.");
@@ -86,7 +88,9 @@ public class LoginApplication extends Application {
         return new Scene(root, 400, 350);
     }
 
-    // Creëert de aanmeldscène met invoervelden voor naam, e-mail en wachtwoord, een knop om een account aan te maken en een terug-knop naar het inlogscherm.
+    /**
+     * Creëert het registratiescherm met velden en knoppen.
+     */
     private Scene createSignUpScene(Stage stage) {
         GridPane signUpPane = new GridPane();
         signUpPane.setPadding(new Insets(20));
@@ -117,7 +121,8 @@ public class LoginApplication extends Application {
             String email = emailField.getText();
             String password = passwordField.getText();
 
-            if (registerUser(name, email, password)) {
+            // Aanroep backend registratie
+            if (loginController.registerUser(name, email, password)) {
                 showAlert("Sign Up Successful", "Your account has been created.");
                 stage.setScene(loginScene);
             } else {
@@ -130,52 +135,9 @@ public class LoginApplication extends Application {
         return new Scene(signUpPane, 400, 350);
     }
 
-    // Controleert of de ingevoerde inloggegevens overeenkomen met een bestaande gebruiker in de database.
-    private boolean validateLogin(String email, String password) {
-        String query = "SELECT * FROM users WHERE mail = ? AND password = ?";
-        try (PreparedStatement stmt = db.getConnection().prepareStatement(query)) {
-            stmt.setString(1, email);
-            stmt.setString(2, password);
-            try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showAlert("Database Error", "Unable to connect to the database.");
-        }
-        return false;
-    }
-
-    // Voegt een nieuwe gebruiker toe aan de database als het e-mailadres nog niet in gebruik is.
-    private boolean registerUser(String name, String email, String password) {
-        String checkQuery = "SELECT * FROM users WHERE mail = ?";
-        String insertQuery = "INSERT INTO users (name, mail, password) VALUES (?, ?, ?)";
-
-        try {
-            try (PreparedStatement checkStmt = db.getConnection().prepareStatement(checkQuery)) {
-                checkStmt.setString(1, email);
-                try (ResultSet rs = checkStmt.executeQuery()) {
-                    if (rs.next()) {
-                        return false;
-                    }
-                }
-            }
-
-            try (PreparedStatement insertStmt = db.getConnection().prepareStatement(insertQuery)) {
-                insertStmt.setString(1, name);
-                insertStmt.setString(2, email);
-                insertStmt.setString(3, password);
-                insertStmt.executeUpdate();
-                return true;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showAlert("Database Error", "Unable to connect to the database.");
-        }
-        return false;
-    }
-
-    // Toont een pop-upmelding met een titel en bericht om de gebruiker te informeren over een actie of foutmelding.
+    /**
+     * Toont een pop-upmelding.
+     */
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
