@@ -2,6 +2,7 @@ package com.pieter.pigeonproject;
 
 import com.pieter.pigeonproject.Classes.Navbar;
 import com.pieter.pigeonproject.Classes.Database;
+import com.pieter.pigeonproject.Controllers.AccountPageController;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -9,53 +10,50 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 public class AccountPage {
 
-    private Stage stage;
-    private BorderPane mainLayout;
-    private Database db;
+    private final Stage stage; // Verwijzing naar het hoofdvenster (voor navigatie)
+    private final Database db; // Database-object (wordt alleen doorgegeven)
+    private final AccountPageController controller; // Backend controller voor deze pagina
+
     private String currentEmail;
     private String currentPassword;
 
-    // Initialiseert de AccountPage en haalt accountgegevens op.
+    // Constructor: initialiseert de controller en haalt de gegevens op
     public AccountPage(Stage stage, Database db) {
         this.stage = stage;
-        this.db = new Database();
-        fetchAccountData();
+        this.db = db;
+        this.controller = new AccountPageController(db);
+        loadAccountData(); // Vul currentEmail en currentPassword
     }
 
-    // Laadt de navigatiebalk, toont accountgegevens en retourneert de scène.
+    // Bouwt de pagina-layout en retourneert een Scene die getoond kan worden in de stage
     public Scene getScene() {
-        // Navbar toevoegen
-        Navbar navBarComponent = new Navbar(stage, db);
-        mainLayout = navBarComponent.getLayout();
+        // Maak de hoofdlayout met navbar aan
+        BorderPane mainLayout = new Navbar(stage, db).getLayout();
 
-        // GridPane voor de content
+        // Grid voor de invoervelden en knoppen
         GridPane grid = new GridPane();
         grid.setPadding(new Insets(20));
         grid.setVgap(10);
         grid.setHgap(10);
 
-        // Labels & velden
+        // E-mailadres veld (niet bewerkbaar)
         Label emailLabel = new Label("E-mail:");
         TextField emailField = new TextField(currentEmail);
         emailField.setEditable(false);
 
+        // Wachtwoord veld (niet bewerkbaar)
         Label passwordLabel = new Label("Wachtwoord:");
         PasswordField passwordField = new PasswordField();
         passwordField.setText(currentPassword);
         passwordField.setEditable(false);
 
-        // Knoppen
+        // Wijzig-knoppen
         Button changeEmailButton = new Button("E-mail wijzigen");
         Button changePasswordButton = new Button("Wachtwoord wijzigen");
 
-        // Voeg elementen toe aan het grid
+        // Voeg labels, velden en knoppen toe aan het grid
         grid.add(emailLabel, 0, 0);
         grid.add(emailField, 1, 0);
         grid.add(changeEmailButton, 2, 0);
@@ -64,33 +62,24 @@ public class AccountPage {
         grid.add(passwordField, 1, 1);
         grid.add(changePasswordButton, 2, 1);
 
-        // Event Handlers voor bewerken
+        // Event handlers voor wijzigingen
         changeEmailButton.setOnAction(e -> showChangeDialog("email", emailField));
         changePasswordButton.setOnAction(e -> showChangeDialog("password", passwordField));
 
+        // Plaats het grid in het midden van het scherm
         mainLayout.setCenter(grid);
+
         return new Scene(mainLayout, 1900, 1080);
     }
 
-    // Haalt de e-mail en het wachtwoord van de gebruiker op uit de database.
-    private void fetchAccountData() {
-        String query = "SELECT mail, password FROM users WHERE id = 1"; // Pas ID aan indien nodig
-
-        try (Connection conn = db.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query);
-             ResultSet rs = stmt.executeQuery()) {
-
-            if (rs.next()) {
-                currentEmail = rs.getString("mail");
-                currentPassword = rs.getString("password");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showAlert("Database Fout", "Kan accountgegevens niet ophalen.");
-        }
+    // Haalt huidige accountgegevens op uit de backend (controller)
+    private void loadAccountData() {
+        String[] data = controller.fetchAccountData();
+        currentEmail = data[0];
+        currentPassword = data[1];
     }
 
-    // Toont een dialoogvenster waarmee de gebruiker zijn e-mail of wachtwoord kan wijzigen.
+    // Toont een invoerdialoog voor wijziging van e-mail of wachtwoord
     private void showChangeDialog(String type, TextField field) {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Wijzigen " + (type.equals("email") ? "E-mail" : "Wachtwoord"));
@@ -106,38 +95,22 @@ public class AccountPage {
 
             confirm.showAndWait().ifPresent(response -> {
                 if (response == ButtonType.OK) {
-                    updateAccountData(type, newValue);
-                    field.setText(newValue);
+                    boolean success = controller.updateAccountData(type, newValue);
+
+                    if (success) {
+                        field.setText(newValue); // Pas het veld aan in de UI
+                        if (type.equals("email")) currentEmail = newValue;
+                        else currentPassword = newValue;
+                        showAlert("Succes", "Gegevens succesvol gewijzigd.");
+                    } else {
+                        showAlert("Fout", "Wijziging mislukt.");
+                    }
                 }
             });
         });
     }
 
-    // Werkt de e-mail of het wachtwoord van de gebruiker bij in de database.
-    private void updateAccountData(String type, String newValue) {
-        String query = "UPDATE users SET " + (type.equals("email") ? "mail" : "password") + " = ? WHERE id = 1";
-
-        try (Connection conn = db.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-
-            stmt.setString(1, newValue);
-            stmt.executeUpdate();
-            showAlert("Succes", (type.equals("email") ? "E-mail" : "Wachtwoord") + " succesvol gewijzigd!");
-
-            // Update de lokale variabelen
-            if (type.equals("email")) {
-                currentEmail = newValue;
-            } else {
-                currentPassword = newValue;
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showAlert("Database Fout", "Kan " + (type.equals("email") ? "e-mail" : "wachtwoord") + " niet wijzigen.");
-        }
-    }
-
-    // Toont een informatieve melding aan de gebruiker.
+    // Toont een eenvoudige melding aan de gebruiker
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
