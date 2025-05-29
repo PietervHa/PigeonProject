@@ -72,11 +72,18 @@ public class StamKaartenController {
      * @param naam Naam van de nieuwe stamkaart.
      * @throws SQLException Indien een database fout optreedt.
      */
-    public void addStamkaart(String naam) throws SQLException {
+    public boolean addStamkaart(String naam) {
+        String sql = "INSERT INTO stamkaarten (naam) VALUES (?)";
         try (Connection conn = db.getConnection();
-             PreparedStatement stmt = conn.prepareStatement("INSERT INTO stamkaarten (naam) VALUES (?)")) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, naam);
-            stmt.executeUpdate();
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 
